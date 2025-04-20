@@ -1,6 +1,10 @@
 [package]
 name = "dioxus-mosaic"
+description = "Dioxus tiling window manager"
 version = "0.1.0"
 edition = "2024"
+authors = ["Cole Brazinski <colepbrazinski@gmail.com>"]
+license = "Apache 2"
 
 [dependencies]
+dioxus = { version = "0.6.0", features = [] }
