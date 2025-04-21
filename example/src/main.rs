@@ -6,34 +6,64 @@ fn main() {
 }
 
 #[component]
+fn Pink() -> Element {
+    rsx! {
+        div {
+            style: "background-color: pink; width: 100%; height: 100%;"
+        }
+    }
+}
+
+#[component]
+fn Red() -> Element {
+    rsx! {
+        div {
+            style: "background-color: red; width: 100%; height: 100%;"
+        }
+    }
+}
+
+#[component]
+fn Black() -> Element {
+    rsx! {
+        div {
+            style: "background-color: black; width: 100%; height: 100%;"
+        }
+    }
+}
+
+#[component]
+fn Green() -> Element {
+    rsx! {
+        div {
+            style: "background-color: green; width: 100%; height: 100%;"
+        }
+    }
+}
+
+#[component]
 fn App() -> Element {
-    let left = MosaicNode::new(Some(rsx! {}), MosaicDirection::Row, None, None, Some(50.0));
-    let left = MosaicNode::to_child_node(left);
-
-    let right_top = MosaicNode::new(Some(rsx! {}), MosaicDirection::Row, None, None, None);
-    let right_top = MosaicNode::to_child_node(right_top);
-
-    let right_bot = MosaicNode::new(Some(rsx! {}), MosaicDirection::Row, None, None, None);
-    let right_bot = MosaicNode::to_child_node(right_bot);
-
-    let right = MosaicNode::new(
-        None,
-        MosaicDirection::Column,
-        Some(right_top),
-        Some(right_bot),
-        Some(50.0),
-    );
-    let right = MosaicNode::to_child_node(right);
-
-    let root = MosaicNode::new(
-        None,
-        MosaicDirection::Row,
-        Some(left),
-        Some(right),
-        Some(50.0),
-    );
+    let mut root = use_signal(|| MosaicNode::new_root(rsx! {Pink{}}));
 
     rsx! {
+        button {
+            style: "margin-left: 60px; width: 50px; height: 50px; position: absolute; z-index: 9999",
+            onclick: move |_| {
+                root.write()
+                    .add_child_in_order(MosaicDirection::Column, &rsx! {Red{}});
+            },
+            "col"
+        }
+
+        button {
+            style: "width: 50px; height: 50px; position: absolute; z-index: 9999",
+            onclick: move |_| {
+                root.write()
+                    .add_child_in_order(MosaicDirection::Row, &rsx! {Pink{}});
+            }
+            "row"
+        }
+
         style {
             r#"
             .mosaic-tile {{
@@ -69,7 +99,7 @@ fn App() -> Element {
         }
 
         Mosaic {
-            root: root
+            root: root()
         }
     }
 }

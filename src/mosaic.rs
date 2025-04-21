@@ -1,9 +1,14 @@
 use dioxus::prelude::*;
+use log::Level;
+use log::info;
 
 use crate::{mosaic_root::MosaicRoot, prelude::MosaicNode};
 
 #[component]
 pub fn Mosaic(root: MosaicNode) -> Element {
+    console_log::init_with_level(Level::Debug);
+    info!("{:#?}", root);
+
     rsx! {
         div {
             class: "mosaic",
@@ -15,7 +20,7 @@ pub fn Mosaic(root: MosaicNode) -> Element {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum MosaicDirection {
     Column,
     Row,
