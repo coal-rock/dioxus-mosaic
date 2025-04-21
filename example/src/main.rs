@@ -43,14 +43,27 @@ fn Green() -> Element {
 
 #[component]
 fn App() -> Element {
-    let mut root = use_signal(|| MosaicNode::new_root(rsx! {Pink{}}));
+    let mut root = use_signal(|| {
+        MosaicNode::new_root(rsx! {
+            MosaicWindow {
+                title: "hello",
+                children: Red(),
+                style: "width: 100%; height: 100%; border: 2px solid black; border-radius: 2px; overflow: hidden; margin: -2px;"
+            }
+        })
+    });
 
     rsx! {
         button {
             style: "margin-left: 60px; width: 50px; height: 50px; position: absolute; z-index: 9999",
             onclick: move |_| {
                 root.write()
-                    .add_child_in_order(MosaicDirection::Column, &rsx! {Red{}});
+                    .add_child_in_order(MosaicDirection::Column, &rsx! {
+                        MosaicWindow {
+                            title: "hello",
+                            children: Red(),
+                        }
+                    });
             },
             "col"
         }
@@ -59,8 +72,13 @@ fn App() -> Element {
             style: "width: 50px; height: 50px; position: absolute; z-index: 9999",
             onclick: move |_| {
                 root.write()
-                    .add_child_in_order(MosaicDirection::Row, &rsx! {Pink{}});
-            }
+                    .add_child_in_order(MosaicDirection::Row, &rsx! {
+                        MosaicWindow {
+                            title: "hello",
+                            children: Pink(),
+                        }
+                    });
+            },
             "row"
         }
 
@@ -94,6 +112,33 @@ fn App() -> Element {
                 margin-top: -3px;
                 height: 6px;
                 cursor: ns-resize;
+            }}
+            
+            .mosaic-window {{
+                width: 100%; 
+                height: 100%; 
+                border: 2px solid black; 
+                border-radius: 2px; 
+                margin: -2px;
+                
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }}
+
+            .mosaic-window-toolbar {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-shrink: 0;
+                height: 30px;
+                background: white;
+            }}
+
+            .mosaic-window-body {{
+                width: 100%;
+                height: 100%
             }}
             "#
         }
