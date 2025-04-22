@@ -1,21 +1,26 @@
 use dioxus::prelude::*;
 use log::Level;
-use log::info;
 
 use crate::{mosaic_root::MosaicRoot, prelude::MosaicNode};
 
+#[derive(Clone)]
+pub struct MosaicContext {
+    pub root_node: Signal<MosaicNode>,
+}
+
 #[component]
-pub fn Mosaic(root: MosaicNode) -> Element {
-    console_log::init_with_level(Level::Debug);
-    info!("{:#?}", root);
+pub fn Mosaic(root: MosaicNode, children: Element) -> Element {
+    let _ = console_log::init_with_level(Level::Debug);
+
+    use_context_provider(|| MosaicContext {
+        root_node: Signal::new(root.clone()),
+    });
 
     rsx! {
         div {
             class: "mosaic",
-
-            MosaicRoot {
-                root: root
-            }
+            { children }
+            MosaicRoot { }
         }
     }
 }
@@ -26,12 +31,13 @@ pub enum MosaicDirection {
     Row,
 }
 
-#[derive(Clone)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum MosaicBranchIndex {
     First,
     Second,
 }
 
+#[derive(PartialEq, Clone, Debug)]
 pub struct MosaicBranch {
     branch: Vec<MosaicBranchIndex>,
 }

@@ -1,4 +1,8 @@
-use crate::mosaic::MosaicDirection;
+use crate::{
+    bounding_box::BoundingBox,
+    mosaic::{MosaicBranch, MosaicBranchIndex, MosaicDirection},
+    mosaic_split::MosaicSplit,
+};
 use dioxus::prelude::*;
 
 pub type MosaicChildNode = Box<MosaicNode>;
@@ -78,6 +82,52 @@ impl MosaicNode {
         match self {
             MosaicNode::Element(element) => Some(element.clone()),
             MosaicNode::Children { .. } => None,
+        }
+    }
+
+    pub fn render(&self, bounding_box: BoundingBox, path: MosaicBranch) -> Vec<Element> {
+        match self {
+            MosaicNode::Element(element) => {
+                vec![rsx! {
+                    div {
+                        class: "mosaic-tile",
+                        style: bounding_box.as_style(),
+
+                        {element.clone()}
+                    }
+                }]
+            }
+            MosaicNode::Children { first, second, .. } => {
+                let split_percentage = self.get_split_percentage().unwrap();
+                let direction = self.get_direction().unwrap();
+
+                let split = BoundingBox::split(&bounding_box, split_percentage, &direction);
+
+                let mut elements = Vec::new();
+
+                elements.extend(first.render(split.first, path.concat(MosaicBranchIndex::First)));
+
+                let split_elements = vec![rsx! {
+                    MosaicSplit {
+                        direction: direction.clone(),
+                        bounding_box: bounding_box,
+                        split_percentage: split_percentage,
+                        path: path.clone()
+                    }
+                }];
+
+                let second_elements = match second {
+                    Some(second) => {
+                        second.render(split.second, path.concat(MosaicBranchIndex::Second))
+                    }
+                    None => vec![],
+                };
+
+                elements.extend(split_elements);
+                elements.extend(second_elements);
+
+                elements
+            }
         }
     }
 }

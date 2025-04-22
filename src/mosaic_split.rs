@@ -1,13 +1,15 @@
 use dioxus::prelude::*;
+use log::info;
 
 use crate::bounding_box::BoundingBox;
-use crate::mosaic::MosaicDirection;
+use crate::mosaic::{MosaicBranch, MosaicDirection};
 
 #[component]
 pub fn MosaicSplit(
     direction: MosaicDirection,
     bounding_box: BoundingBox,
     split_percentage: f32,
+    path: MosaicBranch,
 ) -> Element {
     rsx! {
         div {
@@ -18,9 +20,34 @@ pub fn MosaicSplit(
             style: compute_style(
                 bounding_box,
                 direction,
-                split_percentage
+                split_percentage,
             ),
 
+            onmousedown: move |event| {
+                event.prevent_default();
+                info!("down");
+                info!("{:#?}", path);
+            },
+            onmouseup: move |event| {
+                event.prevent_default();
+                info!("up");
+            },
+            onmousemove: move |event| {
+                event.prevent_default();
+                // e = e || window.event;
+                // e.preventDefault();
+                // // calculate the new cursor position:
+                // pos1 = pos3 - e.clientX;
+                // pos2 = pos4 - e.clientY;
+                // pos3 = e.clientX;
+                // pos4 = e.clientY;
+                // // set the element's new position:
+                // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                info!("moving");
+
+                info!("{:#?}", event.page_coordinates());
+            },
             div {
                 class: "mosaic-split-line"
             }

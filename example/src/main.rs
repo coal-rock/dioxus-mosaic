@@ -1,12 +1,12 @@
 use dioxus::prelude::*;
-use dioxus_mosaic::prelude::*;
+use dioxus_mosaic::{mosaic::MosaicContext, prelude::*};
 
 fn main() {
     dioxus::launch(App);
 }
 
 #[component]
-fn Pink() -> Element {
+fn PinkWindow() -> Element {
     rsx! {
         div {
             style: "background-color: pink; width: 100%; height: 100%;"
@@ -15,7 +15,7 @@ fn Pink() -> Element {
 }
 
 #[component]
-fn Red() -> Element {
+fn RedWindow() -> Element {
     rsx! {
         div {
             style: "background-color: red; width: 100%; height: 100%;"
@@ -24,34 +24,8 @@ fn Red() -> Element {
 }
 
 #[component]
-fn Black() -> Element {
-    rsx! {
-        div {
-            style: "background-color: black; width: 100%; height: 100%;"
-        }
-    }
-}
-
-#[component]
-fn Green() -> Element {
-    rsx! {
-        div {
-            style: "background-color: green; width: 100%; height: 100%;"
-        }
-    }
-}
-
-#[component]
-fn App() -> Element {
-    let mut root = use_signal(|| {
-        MosaicNode::new_root(rsx! {
-            MosaicWindow {
-                title: "hello",
-                children: Red(),
-                style: "width: 100%; height: 100%; border: 2px solid black; border-radius: 2px; overflow: hidden; margin: -2px;"
-            }
-        })
-    });
+fn SplitColButton() -> Element {
+    let mut root = use_context::<MosaicContext>().root_node;
 
     rsx! {
         button {
@@ -61,13 +35,20 @@ fn App() -> Element {
                     .add_child_in_order(MosaicDirection::Column, &rsx! {
                         MosaicWindow {
                             title: "hello",
-                            children: Red(),
+                            children: rsx! { RedWindow {} },
                         }
                     });
             },
             "col"
         }
+    }
+}
 
+#[component]
+fn SplitRowButton() -> Element {
+    let mut root = use_context::<MosaicContext>().root_node;
+
+    rsx! {
         button {
             style: "width: 50px; height: 50px; position: absolute; z-index: 9999",
             onclick: move |_| {
@@ -75,13 +56,28 @@ fn App() -> Element {
                     .add_child_in_order(MosaicDirection::Row, &rsx! {
                         MosaicWindow {
                             title: "hello",
-                            children: Pink(),
+                            children: rsx! { PinkWindow {} },
                         }
                     });
             },
             "row"
         }
+    }
+}
 
+#[component]
+fn App() -> Element {
+    let root = use_signal(|| {
+        MosaicNode::new_root(rsx! {
+            MosaicWindow {
+                title: "root",
+                children: rsx! { RedWindow {} },
+                style: "width: 100%; height: 100%; border: 2px solid black; border-radius: 2px; overflow: hidden; margin: -2px;"
+            }
+        })
+    });
+
+    rsx! {
         style {
             r#"
             .mosaic-tile {{
@@ -144,7 +140,14 @@ fn App() -> Element {
         }
 
         Mosaic {
-            root: root()
+            root: root(),
+            SplitColButton {
+
+            }
+
+            SplitRowButton {
+
+            }
         }
     }
 }
