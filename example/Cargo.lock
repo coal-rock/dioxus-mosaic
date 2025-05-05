@@ -1127,6 +1127,7 @@ dependencies = [
  "console_log",
  "dioxus",
  "log",
+ "web-sys",
 ]
 
 [[package]]

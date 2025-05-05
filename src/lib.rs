@@ -8,7 +8,6 @@ pub mod mosaic_window;
 
 pub mod prelude {
     pub use crate::mosaic::{Mosaic, MosaicDirection};
-
     pub use crate::mosaic_node::MosaicNode;
     pub use crate::mosaic_window::MosaicWindow;
 }

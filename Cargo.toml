@@ -10,3 +10,4 @@ license = "Apache 2"
 console_log = "1.0.0"
 dioxus = { version = "0.6.0", features = [] }
 log = "0.4.27"
+web-sys = { version = "0.3.77", features = ["Window"] }

@@ -43,6 +43,10 @@ pub struct MosaicBranch {
 }
 
 impl MosaicBranch {
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a MosaicBranchIndex> {
+        self.branch.iter()
+    }
+
     pub fn empty() -> MosaicBranch {
         MosaicBranch { branch: vec![] }
     }

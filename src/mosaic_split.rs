@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
-use log::info;
+use web_sys::window;
 
 use crate::bounding_box::BoundingBox;
-use crate::mosaic::{MosaicBranch, MosaicDirection};
+use crate::mosaic::{MosaicBranch, MosaicContext, MosaicDirection};
 
 #[component]
 pub fn MosaicSplit(
@@ -11,6 +11,11 @@ pub fn MosaicSplit(
     split_percentage: f32,
     path: MosaicBranch,
 ) -> Element {
+    let mut root = use_context::<MosaicContext>().root_node;
+    let mut mouse_down = use_signal(|| false);
+
+    let path = use_signal(|| path.clone());
+
     rsx! {
         div {
             class: match direction {
@@ -22,31 +27,35 @@ pub fn MosaicSplit(
                 direction,
                 split_percentage,
             ),
+            draggable: true,
 
             onmousedown: move |event| {
-                event.prevent_default();
-                info!("down");
-                info!("{:#?}", path);
+                *mouse_down.write() = true
             },
             onmouseup: move |event| {
-                event.prevent_default();
-                info!("up");
+                *mouse_down.write() = false;
             },
-            onmousemove: move |event| {
+            ondragstart: move |event| {
                 event.prevent_default();
-                // e = e || window.event;
-                // e.preventDefault();
-                // // calculate the new cursor position:
-                // pos1 = pos3 - e.clientX;
-                // pos2 = pos4 - e.clientY;
-                // pos3 = e.clientX;
-                // pos4 = e.clientY;
-                // // set the element's new position:
-                // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                info!("moving");
+            },
+            onmouseleave: move |event| {
+                if *mouse_down.read() == false {
+                    return;
+                }
 
-                info!("{:#?}", event.page_coordinates());
+                let window = web_sys::window().unwrap();
+                let current_position = event.client_coordinates();
+
+                match direction {
+                    MosaicDirection::Column => {
+                        let window_height = window.inner_height().unwrap().as_f64().unwrap();
+                        root.write().resize(path(), current_position.y as f32, window_height as f32);
+                    },
+                    MosaicDirection::Row => {
+                        let window_width = window.inner_width().unwrap().as_f64().unwrap();
+                        root.write().resize(path(), current_position.x as f32, window_width as f32);
+                    },
+                }
             },
             div {
                 class: "mosaic-split-line"

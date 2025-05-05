@@ -16,9 +16,18 @@ fn PinkWindow() -> Element {
 
 #[component]
 fn RedWindow() -> Element {
+    let mut counter = use_signal(|| 0);
+
     rsx! {
         div {
-            style: "background-color: red; width: 100%; height: 100%;"
+            style: "background-color: red; width: 100%; height: 100%;",
+            button {
+                style: "width: 50px; height: 50px; z-index: 9999",
+                onclick: move |_| {
+                    *counter.write() += 1;
+                },
+                {counter.to_string()}
+            }
         }
     }
 }

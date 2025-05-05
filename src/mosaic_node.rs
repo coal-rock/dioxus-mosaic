@@ -1,9 +1,11 @@
+use dioxus::prelude::*;
+
 use crate::{
     bounding_box::BoundingBox,
     mosaic::{MosaicBranch, MosaicBranchIndex, MosaicDirection},
     mosaic_split::MosaicSplit,
+    mosaic_tile::MosaicTile,
 };
-use dioxus::prelude::*;
 
 pub type MosaicChildNode = Box<MosaicNode>;
 
@@ -89,11 +91,9 @@ impl MosaicNode {
         match self {
             MosaicNode::Element(element) => {
                 vec![rsx! {
-                    div {
-                        class: "mosaic-tile",
-                        style: bounding_box.as_style(),
-
-                        {element.clone()}
+                    MosaicTile {
+                        bounding_box,
+                        {element}
                     }
                 }]
             }
@@ -107,27 +107,107 @@ impl MosaicNode {
 
                 elements.extend(first.render(split.first, path.concat(MosaicBranchIndex::First)));
 
-                let split_elements = vec![rsx! {
+                elements.push(rsx! {
                     MosaicSplit {
                         direction: direction.clone(),
                         bounding_box: bounding_box,
                         split_percentage: split_percentage,
                         path: path.clone()
                     }
-                }];
+                });
 
-                let second_elements = match second {
-                    Some(second) => {
-                        second.render(split.second, path.concat(MosaicBranchIndex::Second))
-                    }
-                    None => vec![],
+                match second {
+                    Some(second) => elements.extend(
+                        second.render(split.second, path.concat(MosaicBranchIndex::Second)),
+                    ),
+                    None => {}
                 };
-
-                elements.extend(split_elements);
-                elements.extend(second_elements);
 
                 elements
             }
         }
+    }
+
+    pub fn resize(&mut self, path: MosaicBranch, cursor_pos: f32, max_pos: f32) -> bool {
+        let mut node = self;
+        let og_max_pos = max_pos;
+        let mut max_pos_col = max_pos;
+        let mut max_pos_row = max_pos;
+
+        for direction in path.iter() {
+            node = match direction {
+                MosaicBranchIndex::First => match node {
+                    MosaicNode::Element(_) => return false,
+                    MosaicNode::Children {
+                        first,
+                        split_percentage,
+                        direction,
+                        ..
+                    } => {
+                        match direction {
+                            MosaicDirection::Column => {
+                                max_pos_col =
+                                    max_pos_col - (max_pos_col * (*split_percentage / 100.0));
+                            }
+                            MosaicDirection::Row => {
+                                max_pos_row =
+                                    max_pos_row - (max_pos_row * (*split_percentage / 100.0));
+                            }
+                        }
+                        first
+                    }
+                },
+                MosaicBranchIndex::Second => match node {
+                    MosaicNode::Element(_) => return false,
+                    MosaicNode::Children {
+                        second,
+                        split_percentage,
+                        direction,
+                        ..
+                    } => {
+                        match direction {
+                            MosaicDirection::Column => {
+                                max_pos_col =
+                                    max_pos_col - (max_pos_col * (*split_percentage / 100.0));
+                            }
+                            MosaicDirection::Row => {
+                                max_pos_row =
+                                    max_pos_row - (max_pos_row * (*split_percentage / 100.0));
+                            }
+                        }
+                        second.as_mut().unwrap()
+                    }
+                },
+            }
+        }
+
+        let cursor_pos_col = cursor_pos - (og_max_pos - max_pos_col);
+        let cursor_pos_row = cursor_pos - (og_max_pos - max_pos_row);
+
+        match node {
+            MosaicNode::Element(_) => return false,
+            MosaicNode::Children {
+                split_percentage,
+                direction,
+                ..
+            } => {
+                match direction {
+                    MosaicDirection::Column => {
+                        *split_percentage = (cursor_pos_col / max_pos_col) * 100.0;
+                    }
+                    MosaicDirection::Row => {
+                        *split_percentage = (cursor_pos_row / max_pos_row) * 100.0;
+                    }
+                }
+
+                match (*split_percentage > 80.0, *split_percentage < 20.0) {
+                    (true, false) => *split_percentage = 80.0,
+                    (false, true) => *split_percentage = 20.0,
+                    _ => {}
+                }
+            }
+        };
+
+        return true;
     }
 }
